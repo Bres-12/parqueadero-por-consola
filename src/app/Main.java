@@ -37,12 +37,13 @@ public class Main {
         int opcion;
         do {
             mostrarMenu();
-            opcion = leerEntero("Seleccione una opción: ", 1, 2);
+            opcion = leerEntero("Seleccione una opción: ", 1, 3);
             switch (opcion) {
                 case 1 -> registrarEntrada();
+                case 2 -> registrarSalida();
                 default -> imprimir("Hasta pronto.");
             }
-        } while (opcion != 2);
+        } while (opcion != 3);
         SCANNER.close();
     }
 
@@ -60,7 +61,8 @@ public class Main {
     static void mostrarMenu() {
         imprimir("\n===== PARQUEADERO =====");
         imprimir("1. Registrar entrada");
-        imprimir("2. Salir");
+        imprimir("2. Registrar salida");
+        imprimir("3. Salir");
     }
 
     static void imprimir(String mensaje) {
@@ -91,6 +93,47 @@ public class Main {
             }
         }
         return -1;
+    }
+
+    static void registrarSalida() {
+        if (celdasOcupadas == 0) {
+            imprimir("No hay vehículos en el parqueadero.");
+            return;
+        }
+        int celda = leerEntero("Número de celda (1-" + CAPACIDAD_TOTAL + "): ", 1, CAPACIDAD_TOTAL) - 1;
+        if (tiposVehiculo[celda] == null) {
+            imprimir("La celda " + (celda + 1) + " está libre.");
+            return;
+        }
+
+        LocalDateTime ingreso = fechasIngreso[celda];
+        LocalDateTime salida;
+        while (true) {
+            salida = leerFechaHora("Fecha y hora de salida (yyyy-MM-dd HH:mm): ");
+            if (salida.isBefore(ingreso)) {
+                imprimir("La salida no puede ser anterior al ingreso (" + ingreso.format(FORMATO_FECHA_HORA) + ").");
+                continue;
+            }
+            break;
+        }
+
+        String tipo = tiposVehiculo[celda];
+        long total = liquidar(celda, tipo, ingreso, salida);
+
+        if (tipo.equals(CARRO)) {
+            recaudoCarros += total;
+        } else {
+            recaudoMotos += total;
+        }
+        tiposVehiculo[celda] = null;
+        fechasIngreso[celda] = null;
+        celdasOcupadas--;
+        celdasLibres++;
+    }
+
+    static long liquidar(int celda, String tipo, LocalDateTime ingreso, LocalDateTime salida) {
+        imprimir("Celda " + (celda + 1) + " liberada.");
+        return 0;
     }
 
     static int leerEntero(String mensaje, int min, int max) {
