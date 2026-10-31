@@ -34,17 +34,15 @@ public class Main {
     public static void main(String[] args) {
         inicializarArreglos();
         imprimir("Bienvenido al sistema parqueadero");
-        String opcion;
+        int opcion;
         do {
             mostrarMenu();
-            System.out.print("Seleccione una opción: ");
-            opcion = SCANNER.nextLine().trim();
+            opcion = leerEntero("Seleccione una opción: ", 1, 2);
             switch (opcion) {
-                case "1" -> registrarEntrada();
-                case "2" -> imprimir("Hasta pronto.");
-                default -> imprimir("Opción no válida.");
+                case 1 -> registrarEntrada();
+                default -> imprimir("Hasta pronto.");
             }
-        } while (!opcion.equals("2"));
+        } while (opcion != 2);
         SCANNER.close();
     }
 
@@ -75,23 +73,8 @@ public class Main {
             imprimir("El parqueadero está lleno. No es posible registrar el ingreso.");
             return;
         }
-
-        System.out.print("Tipo de vehículo (1. Carro, 2. Moto): ");
-        String opcionTipo = SCANNER.nextLine().trim();
-        if (!opcionTipo.equals("1") && !opcionTipo.equals("2")) {
-            imprimir("Tipo de vehículo no válido. Se cancela el registro.");
-            return;
-        }
-        String tipo = opcionTipo.equals("1") ? CARRO : MOTO;
-
-        System.out.print("Fecha y hora de ingreso (yyyy-MM-dd HH:mm): ");
-        LocalDateTime ingreso;
-        try {
-            ingreso = LocalDateTime.parse(SCANNER.nextLine().trim(), FORMATO_FECHA_HORA);
-        } catch (RuntimeException e) {
-            imprimir("Fecha u hora inválidas. Se cancela el registro.");
-            return;
-        }
+        String tipo = leerTipoVehiculo();
+        LocalDateTime ingreso = leerFechaHora("Fecha y hora de ingreso (yyyy-MM-dd HH:mm): ");
 
         tiposVehiculo[celda] = tipo;
         fechasIngreso[celda] = ingreso;
@@ -108,6 +91,76 @@ public class Main {
             }
         }
         return -1;
+    }
+
+    static int leerEntero(String mensaje, int min, int max) {
+        while (true) {
+            System.out.print(mensaje);
+            String texto = SCANNER.nextLine().trim();
+            try {
+                int valor = Integer.parseInt(texto);
+                if (valor >= min && valor <= max) {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+            }
+            imprimir("Dato inválido. Ingrese un número entre " + min + " y " + max + ".");
+        }
+    }
+
+    static String leerTipoVehiculo() {
+        int opcion = leerEntero("Tipo de vehículo (1. Carro, 2. Moto): ", 1, 2);
+        return opcion == 1 ? CARRO : MOTO;
+    }
+
+    static LocalDateTime leerFechaHora(String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String texto = SCANNER.nextLine().trim();
+            if (!formatoFechaHoraValido(texto)) {
+                imprimir("Fecha u hora inválidas. Use yyyy-MM-dd HH:mm y el horario 08:00-22:00.");
+                continue;
+            }
+            LocalDateTime fecha = LocalDateTime.parse(texto, FORMATO_FECHA_HORA);
+            if (!fecha.format(FORMATO_FECHA_HORA).equals(texto)) {
+                imprimir("La fecha no existe en el calendario.");
+                continue;
+            }
+            return fecha;
+        }
+    }
+
+    static boolean formatoFechaHoraValido(String texto) {
+        if (texto.length() != 16
+                || texto.charAt(4) != '-'
+                || texto.charAt(7) != '-'
+                || texto.charAt(10) != ' '
+                || texto.charAt(13) != ':') {
+            return false;
+        }
+
+        int anio = leerDigitos(texto, 0, 4);
+        int mes = leerDigitos(texto, 5, 2);
+        int dia = leerDigitos(texto, 8, 2);
+        int hora = leerDigitos(texto, 11, 2);
+        int minuto = leerDigitos(texto, 14, 2);
+
+        return anio >= 1 && mes >= 1 && mes <= 12 && dia >= 1 && dia <= 31
+                && hora >= HORA_APERTURA && hora <= HORA_CIERRE
+                && (hora != HORA_CIERRE || minuto <= 0)
+                && minuto >= 0 && minuto <= 59;
+    }
+
+    static int leerDigitos(String texto, int inicio, int cantidad) {
+        int valor = 0;
+        for (int i = inicio; i < inicio + cantidad; i++) {
+            char caracter = texto.charAt(i);
+            if (caracter < '0' || caracter > '9') {
+                return -1;
+            }
+            valor = valor * 10 + caracter - '0';
+        }
+        return valor;
     }
 
 }
