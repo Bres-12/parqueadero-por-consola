@@ -39,13 +39,15 @@ public class Main {
         int opcion;
         do {
             mostrarMenu();
-            opcion = leerEntero("Seleccione una opción: ", 1, 3);
+            opcion = leerEntero("Seleccione una opción: ", 1, 5);
             switch (opcion) {
                 case 1 -> registrarEntrada();
                 case 2 -> registrarSalida();
+                case 3 -> reporteOcupacion();
+                case 4 -> reporteFinanciero();
                 default -> imprimir("Hasta pronto.");
             }
-        } while (opcion != 3);
+        } while (opcion != 5);
         SCANNER.close();
     }
 
@@ -64,10 +66,12 @@ public class Main {
         imprimir("\n===== PARQUEADERO =====");
         imprimir("1. Registrar entrada");
         imprimir("2. Registrar salida");
-        imprimir("3. Salir");
+        imprimir("3. Reporte de ocupación");
+        imprimir("4. Reporte financiero");
+        imprimir("5. Salir");
     }
 
-    static void imprimir(String mensaje) {
+    static void imprimir(String mensaje) {2
         System.out.println(mensaje);
     }
 
@@ -190,6 +194,19 @@ public class Main {
             contador++;
         }
         return "$" + sb;
+    }
+
+    static void reporteOcupacion() {
+        imprimir("\n--- Reporte de ocupación ---");
+        imprimir("Celdas ocupadas: " + celdasOcupadas);
+        imprimir("Celdas libres  : " + celdasLibres);
+    }
+
+    static void reporteFinanciero() {
+        imprimir("\n--- Reporte financiero ---");
+        imprimir("Recaudo carros : " + pesos(recaudoCarros));
+        imprimir("Recaudo motos  : " + pesos(recaudoMotos));
+        imprimir("Total general  : " + pesos(recaudoCarros + recaudoMotos));
     }
 
     static int leerEntero(String mensaje, int min, int max) {
