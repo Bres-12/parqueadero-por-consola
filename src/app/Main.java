@@ -69,6 +69,7 @@ public class Main {
         System.out.println(mensaje);
     }
 
+    // ===================== Registro de Entrada =====================
     static void registrarEntrada() {
         int celda = celdaDisponible();
         if (celda == -1) {
@@ -86,6 +87,8 @@ public class Main {
                 + " a las " + ingreso.format(FORMATO_FECHA_HORA) + ".");
     }
 
+    // ===================== Celda Disponible =====================
+    /** Devuelve el índice (0-based) de la primera celda libre, o -1 si no hay. */
     static int celdaDisponible() {
         for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
             if (tiposVehiculo[i] == null) {
@@ -95,6 +98,7 @@ public class Main {
         return -1;
     }
 
+    // ===================== Registro de Salida =====================
     static void registrarSalida() {
         if (celdasOcupadas == 0) {
             imprimir("No hay vehículos en el parqueadero.");
@@ -131,11 +135,15 @@ public class Main {
         celdasLibres++;
     }
 
+    // ===================== Liquidación =====================
+    /** Provisional: el cálculo real y la factura se implementan en el commit 7. */
     static long liquidar(int celda, String tipo, LocalDateTime ingreso, LocalDateTime salida) {
         imprimir("Celda " + (celda + 1) + " liberada.");
         return 0;
     }
 
+    // ===================== Validación de Dato =====================
+    /** Lee un entero en [min, max]; repite la solicitud hasta que sea válido. */
     static int leerEntero(String mensaje, int min, int max) {
         while (true) {
             System.out.print(mensaje);
@@ -146,6 +154,7 @@ public class Main {
                     return valor;
                 }
             } catch (NumberFormatException e) {
+                // se informa abajo
             }
             imprimir("Dato inválido. Ingrese un número entre " + min + " y " + max + ".");
         }
