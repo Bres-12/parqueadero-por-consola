@@ -70,13 +70,7 @@ public class Main {
     }
 
     static void registrarEntrada() {
-        int celda = -1;
-        for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
-            if (tiposVehiculo[i] == null) {
-                celda = i;
-                break;
-            }
-        }
+        int celda = celdaDisponible();
         if (celda == -1) {
             imprimir("El parqueadero está lleno. No es posible registrar el ingreso.");
             return;
@@ -105,6 +99,15 @@ public class Main {
         celdasLibres--;
         imprimir(tipo + " registrado en la celda " + (celda + 1)
                 + " a las " + ingreso.format(FORMATO_FECHA_HORA) + ".");
+    }
+
+    static int celdaDisponible() {
+        for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
+            if (tiposVehiculo[i] == null) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }
