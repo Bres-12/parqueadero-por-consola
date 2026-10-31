@@ -1,7 +1,9 @@
 package app;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Scanner;
 
 public class Main {
@@ -69,7 +71,6 @@ public class Main {
         System.out.println(mensaje);
     }
 
-    // ===================== Registro de Entrada =====================
     static void registrarEntrada() {
         int celda = celdaDisponible();
         if (celda == -1) {
@@ -87,8 +88,6 @@ public class Main {
                 + " a las " + ingreso.format(FORMATO_FECHA_HORA) + ".");
     }
 
-    // ===================== Celda Disponible =====================
-    /** Devuelve el índice (0-based) de la primera celda libre, o -1 si no hay. */
     static int celdaDisponible() {
         for (int i = 0; i < CAPACIDAD_TOTAL; i++) {
             if (tiposVehiculo[i] == null) {
@@ -98,7 +97,6 @@ public class Main {
         return -1;
     }
 
-    // ===================== Registro de Salida =====================
     static void registrarSalida() {
         if (celdasOcupadas == 0) {
             imprimir("No hay vehículos en el parqueadero.");
@@ -135,15 +133,65 @@ public class Main {
         celdasLibres++;
     }
 
-    // ===================== Liquidación =====================
-    /** Provisional: el cálculo real y la factura se implementan en el commit 7. */
     static long liquidar(int celda, String tipo, LocalDateTime ingreso, LocalDateTime salida) {
-        imprimir("Celda " + (celda + 1) + " liberada.");
-        return 0;
+        long diasACobrar = contarDiasCompletos(ingreso, salida);
+        LocalDateTime cursor = ingreso.plusDays(diasACobrar);
+        long horasACobrar = calcularHorasRestantes(cursor, salida);
+        if (horasACobrar >= UMBRAL_HORAS_DIA) {
+            diasACobrar++;
+            horasACobrar = 0;
+        }
+
+        long tarifaDia = tipo.equals(CARRO) ? TARIFA_DIA_CARRO : TARIFA_DIA_MOTO;
+        long tarifaHora = tipo.equals(CARRO) ? TARIFA_HORA_CARRO : TARIFA_HORA_MOTO;
+        long subtotalDias = diasACobrar * tarifaDia;
+        long subtotalHoras = horasACobrar * tarifaHora;
+        long total = subtotalDias + subtotalHoras;
+
+        mostrarFactura(celda, tipo, ingreso, salida, diasACobrar, tarifaDia, horasACobrar, tarifaHora, total);
+        return total;
     }
 
-    // ===================== Validación de Dato =====================
-    /** Lee un entero en [min, max]; repite la solicitud hasta que sea válido. */
+    static long contarDiasCompletos(LocalDateTime ingreso, LocalDateTime salida) {
+        return ChronoUnit.DAYS.between(ingreso, salida);
+    }
+
+    static long calcularHorasRestantes(LocalDateTime cursor, LocalDateTime salida) {
+        long minutosRestantes = Duration.between(cursor, salida).toMinutes();
+        return (minutosRestantes + 59) / 60;
+    }
+
+    static void mostrarFactura(int celda, String tipo, LocalDateTime ingreso, LocalDateTime salida,
+                               long dias, long tarifaDia, long horas, long tarifaHora, long total) {
+        imprimir("\n------------- FACTURA -------------");
+        imprimir("Celda liberada : " + (celda + 1));
+        imprimir("Tipo           : " + tipo);
+        imprimir("Ingreso        : " + ingreso.format(FORMATO_FECHA_HORA));
+        imprimir("Salida         : " + salida.format(FORMATO_FECHA_HORA));
+        if (dias > 0) {
+            imprimir("Días           : " + dias + " x " + pesos(tarifaDia) + " = " + pesos(dias * tarifaDia));
+        }
+        if (horas > 0) {
+            imprimir("Horas          : " + horas + " x " + pesos(tarifaHora) + " = " + pesos(horas * tarifaHora));
+        }
+        imprimir("TOTAL A PAGAR  : " + pesos(total));
+        imprimir("-----------------------------------");
+    }
+
+    static String pesos(long valor) {
+        String digitos = Long.toString(valor);
+        StringBuilder sb = new StringBuilder();
+        int contador = 0;
+        for (int i = digitos.length() - 1; i >= 0; i--) {
+            if (contador > 0 && contador % 3 == 0) {
+                sb.insert(0, '.');
+            }
+            sb.insert(0, digitos.charAt(i));
+            contador++;
+        }
+        return "$" + sb;
+    }
+
     static int leerEntero(String mensaje, int min, int max) {
         while (true) {
             System.out.print(mensaje);
@@ -154,7 +202,6 @@ public class Main {
                     return valor;
                 }
             } catch (NumberFormatException e) {
-                // se informa abajo
             }
             imprimir("Dato inválido. Ingrese un número entre " + min + " y " + max + ".");
         }
